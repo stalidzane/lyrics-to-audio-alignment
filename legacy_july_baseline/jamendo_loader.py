@@ -120,7 +120,7 @@ def load_songs(
 
 
 if __name__ == "__main__":
-    # Quick self-check against the real dataset (needs internet + deps).
+    # Quick self-check (run from repo root: python -m data.jamendo_loader) against the real dataset (needs internet + deps).
     from datasets import load_dataset
 
     ds = load_dataset("jamendolyrics/jamendolyrics", "en", split="test")

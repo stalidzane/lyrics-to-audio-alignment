@@ -1,15 +1,21 @@
 """
-Unit tests for metrics.py — runnable with `pytest` or directly with `python`.
+Unit tests for eval/metrics.py. From the repo root run either
+`pytest` or `python tests/test_metrics.py`.
 
 They validate the metrics against hand-computed values on tiny fake inputs,
 so you can trust the numbers before real Jamendo predictions ever touch them.
 """
 
 import math
+import os
+import sys
 
 import numpy as np
 
-from metrics import (
+# make the repo root importable when run as a plain script
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from eval.metrics import (
     absolute_errors,
     compute_metrics,
     evaluate_song,

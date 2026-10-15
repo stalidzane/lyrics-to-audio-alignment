@@ -24,7 +24,10 @@ honest behaviour of a plain-Whisper baseline; better aligners (WhisperX, forced
 alignment) come later in the plan and will raise coverage.
 
 Dependencies: numpy, scipy, openai-whisper (`pip install openai-whisper`),
-plus the loader (jamendo_loader.py) and metrics.py in the same folder.
+plus data/jamendo_loader.py and eval/metrics.py.
+
+Run from the repo root:
+    python -m experiments.whisper_baseline
 """
 
 from __future__ import annotations
@@ -38,7 +41,8 @@ from typing import Callable, Optional, Sequence
 import numpy as np
 from scipy.signal import butter, sosfiltfilt
 
-from experiments.jamendo_loader import load_songs
+from data.jamendo_loader import load_songs
+from eval.word_match import align_predictions  # moved + fixed for non-English letters
 from eval.metrics import evaluate_song, aggregate, per_song_table, summary_table, DEFAULT_TOLERANCES
 
 
@@ -61,11 +65,6 @@ def bandpass(audio: np.ndarray, sr: int, low: float = 200.0,
 # --------------------------------------------------------------------------- #
 # Whisper transcription + word matching
 # --------------------------------------------------------------------------- #
-def _normalize(word: str) -> str:
-    """Lowercase and strip anything but letters/digits/apostrophe."""
-    return re.sub(r"[^a-z0-9']", "", word.lower())
-
-
 def transcribe_words(model, audio: np.ndarray,
                      language: Optional[str] = None) -> list[dict]:
     """Run Whisper and flatten to a list of {text, start, end} word dicts."""
@@ -81,25 +80,6 @@ def transcribe_words(model, audio: np.ndarray,
                 "end": float(w["end"]),
             })
     return words
-
-
-def align_predictions(ref_words: Sequence[str],
-                      pred_words: Sequence[dict]) -> np.ndarray:
-    """Map Whisper word start times onto reference words.
-
-    Returns an array of predicted onsets, one per reference word, with NaN where
-    no matching Whisper word was found.
-    """
-    ref_norm = [_normalize(w) for w in ref_words]
-    pred_norm = [_normalize(w["text"]) for w in pred_words]
-    pred_onsets = np.full(len(ref_words), np.nan, dtype=float)
-
-    sm = SequenceMatcher(a=ref_norm, b=pred_norm, autojunk=False)
-    for tag, i1, i2, j1, j2 in sm.get_opcodes():
-        if tag == "equal":
-            for k in range(i2 - i1):
-                pred_onsets[i1 + k] = pred_words[j1 + k]["start"]
-    return pred_onsets
 
 
 # --------------------------------------------------------------------------- #

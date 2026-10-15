@@ -229,7 +229,7 @@ def aggregate(
         },
         "by_language": {},
     }
-    languages = sorted({r.language for r in results})
+    languages = sorted({r.language for r in results}, key=str)
     for lang in languages:
         subset = [r for r in results if r.language == lang]
         out["by_language"][lang] = {
@@ -260,7 +260,7 @@ def per_song_table(
     for r in results:
         m = r.metrics
         row = (
-            f"{r.song_id:<20}{r.language:<6}{r.method:<12}"
+            f"{r.song_id:<20}{str(r.language):<6}{r.method:<12}"
             f"{m['n_words']:>5}{_fmt(m['coverage']):>7}"
             f"{_fmt(m['aae']):>8}{_fmt(m['median_ae']):>8}"
             + "".join(f"{_fmt(m['pco'][t]):>9}" for t in tolerances)
