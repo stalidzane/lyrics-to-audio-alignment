@@ -120,7 +120,9 @@ def main() -> None:
 
     global DATA
     DATA = os.path.join(REPO_ROOT, "data", args.dataset)
-    system = args.system or f"whisper-{args.model}-{args.input}" + ("-nolang" if args.no_language else "")
+    system = args.system or (f"whisper-{args.model}-{args.input}"
+                             + ("-nolang" if args.no_language else "")
+                             + ("" if args.backend == "mlx" else f"-{args.backend}"))
     out_dir = os.path.join(REPO_ROOT, "predictions", args.dataset, system)
     os.makedirs(out_dir, exist_ok=True)
     transcribe, model_id = make_transcriber(args.backend, args.model)

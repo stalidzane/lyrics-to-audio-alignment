@@ -5,7 +5,7 @@ results/
 lrc_files/
 .DS_Store
 _to_delete/
-
+writing/
 # company-derived (never push)
 outputs/
 agreement_summary.md
@@ -15,8 +15,10 @@ data/jamendo/
 data/jamendopp/
 data/company/
 data/raw/
+data/company_languages.csv
 
 predictions/
+experiments/run_all.sh
 
 # company data (licensed, never push)
 company_data/
@@ -25,3 +27,9 @@ outputs/data/raw/
 data/jamendopp/
 
 *.log
+# LaTeX build files
+*.aux
+*.log
+*.out
+*.synctex.gz
+external/
