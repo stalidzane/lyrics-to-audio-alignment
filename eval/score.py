@@ -20,6 +20,8 @@ Columns in the summary:
     PCO@t   share of reference words with |error| <= t; unmatched words count as wrong
     backend Whisper backend/model read from the prediction files' meta (mixed = folder
             contains more than one; fix that before reporting)
+    *_std   standard deviation ACROSS SONGS of the per-song value (sample std, ddof=1;
+            failed songs included as 0, like in the means). Only in the CSVs, not printed.
     corr@t  the same after subtracting ONE constant offset per system and dataset
             (median signed error of the words within 1 s of their reference, so a few
             completely misaligned songs cannot drag it), i.e. what a game could get with a
@@ -61,7 +63,7 @@ REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PRED_DIR = os.path.join(REPO_ROOT, "predictions", "jamendo")
 REF_DIR = os.path.join(REPO_ROOT, "data", "jamendo", "refs")
 RES_DIR = os.path.join(REPO_ROOT, "results", "jamendo")
-SUMMARY_TOLS = (0.05, 0.1, 0.3)
+SUMMARY_TOLS = (0.05, 0.1, 0.3, 0.6)  # 0.1 / 0.3 / 0.6 s = the game's perfect / good / okay windows
 OFFSET_WINDOW = 1.0  # s; only words within this error are used to estimate the constant offset
 
 
@@ -143,6 +145,13 @@ def write_word_csv(rows, path):
         w.writerows(rows)
 
 
+def song_std(values) -> float:
+    """Sample standard deviation (ddof=1) across songs; nan for fewer than 2 songs."""
+    v = np.asarray(values, dtype=float)
+    v = v[~np.isnan(v)]
+    return float(np.std(v, ddof=1)) if v.size > 1 else float("nan")
+
+
 def summary_rows(system, results, corrected, words, backend):
     agg = aggregate(results)
     blocks = [("all", agg["overall"]["macro"])] + [
@@ -164,6 +173,10 @@ def summary_rows(system, results, corrected, words, backend):
         row.update({f"pco_{t}": m["pco"][t] for t in SUMMARY_TOLS})
         row.update({f"corr_{t}": float(np.nanmean([r.metrics["pco"][t] for r in cor]))
                     for t in SUMMARY_TOLS})
+        # spread across songs: std of the per-song values whose mean is reported above
+        row["coverage_std"] = song_std([r.metrics["coverage"] for r in res])
+        row.update({f"pco_std_{t}": song_std([r.metrics["pco"][t] for r in res]) for t in SUMMARY_TOLS})
+        row.update({f"corr_std_{t}": song_std([r.metrics["pco"][t] for r in cor]) for t in SUMMARY_TOLS})
         out.append(row)
     return out
 
@@ -188,10 +201,11 @@ def main() -> None:
     if args.systems and os.path.exists(summary_path):  # partial rescore: keep the other systems' rows
         with open(summary_path) as f:
             existing = [r for r in csv.DictReader(f)
-                        if r["system"] not in systems and "n_failed" in r]  # drop old-format rows
+                        if r["system"] not in systems and "pco_std_0.6" in r]  # drop old-format rows
         if os.path.exists(ok_path):
             with open(ok_path) as f:
-                existing_ok = [r for r in csv.DictReader(f) if r["system"] not in systems]
+                existing_ok = [r for r in csv.DictReader(f)
+                               if r["system"] not in systems and "pco_std_0.6" in r]
 
     new, new_ok = [], []
     for s in systems:
@@ -213,7 +227,9 @@ def main() -> None:
 
     rows = existing + new
     fields = (["system", "backend", "language", "n_songs", "n_failed", "coverage", "median_ae", "aae", "offset"]
-              + [f"pco_{t}" for t in SUMMARY_TOLS] + [f"corr_{t}" for t in SUMMARY_TOLS])
+              + [f"pco_{t}" for t in SUMMARY_TOLS] + [f"corr_{t}" for t in SUMMARY_TOLS]
+              + ["coverage_std"] + [f"pco_std_{t}" for t in SUMMARY_TOLS]
+              + [f"corr_std_{t}" for t in SUMMARY_TOLS])
     with open(summary_path, "w", newline="") as f:
         w = csv.DictWriter(f, fieldnames=fields)
         w.writeheader()

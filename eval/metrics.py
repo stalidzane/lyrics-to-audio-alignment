@@ -9,7 +9,7 @@ lyrics-alignment literature (JamendoLyrics benchmark and follow-ups):
     - median AE : Median Absolute Error (seconds)
     - PCO@t     : Percentage of Correct Onsets within tolerance t seconds
                   (a.k.a. "percentage of correct segments"), reported at
-                  t = 0.03, 0.05, 0.1, 0.2, 0.3 s.
+                  t = 0.03, 0.05, 0.1, 0.2, 0.3, 0.6 s.
     - coverage  : fraction of reference words that actually received a
                   prediction (Whisper / an aligner may drop words).
 
@@ -45,7 +45,7 @@ from typing import Iterable, Sequence
 
 import numpy as np
 
-DEFAULT_TOLERANCES: tuple[float, ...] = (0.03, 0.05, 0.1, 0.2, 0.3)
+DEFAULT_TOLERANCES: tuple[float, ...] = (0.03, 0.05, 0.1, 0.2, 0.3, 0.6)
 
 
 # --------------------------------------------------------------------------- #
