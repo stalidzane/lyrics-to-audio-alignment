@@ -7,17 +7,18 @@ in the new timings (e.g. "streetlamp" -> "street lamp"); unmatched words count a
 
 Timings compared (rhythm-game songs):
     reference   the timing used as reference in the evaluation (data/company/refs/<slug>.json)
-    annotator   the new timing by the second annotator (mada-gulbe) in the bucket
+    annotator   the new timing by the second annotator in the bucket (--annotator = their user name)
     linda       the author's own new timing (data/company/<annotator slug>.lrc)
     + Mr. Brightside: the timing delivered with the stems vs the reference. The mix delivered with
       the stems is a different file, shifted against the reference's track, so this one pair is
       first moved onto the same audio by cross-correlation.
 
-    python3 experiments/agreement_check.py
+    python3 experiments/agreement_check.py --annotator <user name of the second annotator>
 Writes results/agreement/agreement_check.csv (one row per pair) and prints a table.
 """
 from __future__ import annotations
 
+import argparse
 import csv
 import json
 import os
@@ -42,7 +43,6 @@ SONGS = [("The Sound of Silence", "xIImn_1oJ", "txJTzNtwU"),
          ("Dancing Queen", "EEiitGqQ8H", "SQuK69v0xC"),
          ("Guerrilla Radio", "R1LGghIk4O", "Zz7MUQRbsp"),
          ("Pipars", "kw2gggCCBe", "oM_tBMQCJ")]
-ANNOTATOR = "mada-gulbe"
 
 
 def lrc_words(path: Path) -> list[tuple[str, float]]:
@@ -71,10 +71,13 @@ def compare(a: list[tuple[str, float]], b: list[tuple[str, float]]) -> dict:
 
 
 def main() -> None:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--annotator", required=True, help="bucket user name of the second annotator")
+    annotator = ap.parse_args().annotator
     rows = []
     for title, ref_slug, ann_slug in SONGS:
         ref, _ = ref_words(ref_slug)
-        ann = lrc_words(S3 / "users" / ANNOTATOR / ann_slug / f"{ann_slug}.lrc")
+        ann = lrc_words(S3 / "users" / annotator / ann_slug / f"{ann_slug}.lrc")
         mine = REPO / "data" / "company" / f"{ann_slug}.lrc"
         timings = {"reference": ref, "annotator": ann}
         if mine.exists():

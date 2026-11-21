@@ -82,7 +82,7 @@ test run).
 **3. Further analyses**
 ```
 lyrics2audio/bin/python eval/offset_loo.py                     # robustness of the offset correction
-lyrics2audio/bin/python experiments/agreement_check.py         # human agreement (rhythm-game songs)
+lyrics2audio/bin/python experiments/agreement_check.py --annotator <user>   # human agreement
 lyrics2audio/bin/python data/export_stems.py                   # the five songs with vocal tracks ...
 bash experiments/run_all.sh stems && bash experiments/run_all.sh stems_iso   # ... Demucs vocals vs vocal track
 lyrics2audio/bin/python visualisation/plot_pco_tolerance.py    # PCO vs tolerance (add --corrected)
