@@ -33,3 +33,5 @@ data/jamendopp/
 *.out
 *.synctex.gz
 external/
+data/stems/
+data/stems_iso/
