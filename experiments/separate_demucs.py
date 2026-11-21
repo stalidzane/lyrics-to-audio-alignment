@@ -2,16 +2,15 @@
 Separate vocals for every song with Demucs (htdemucs), once.
 
 Output (gitignored):
-    data/{dataset/separated/htdemucs/<name>/vocals.wav
-    data/{dataset/separated/htdemucs/<name>/no_vocals.wav
+    data/<dataset>/separated/htdemucs/<name>/vocals.wav
+    data/<dataset>/separated/htdemucs/<name>/no_vocals.wav
 
-Used by: Whisper on vocals, the vocal-pause cutting (Syed et al. 2025) and the
-Huang & Benetos aligner. Songs already separated are skipped.
+Used by every system run with --input vocals. Songs already separated are skipped.
 
-Demucs pins older torch/torchaudio versions, so install it in its OWN venv to
-keep the main one intact, then point --demucs at it:
-    python3 -m venv ~/venvs/demucs && ~/venvs/demucs/bin/pip install demucs
-    python3 -m experiments.separate_demucs --dataset company      # finds the 'audio' env's demucs itself
+Demucs pins older torch/torchaudio versions, so it is installed in the `audio` conda env
+(envs/audio.yml), not in the main lyrics2audio venv. This script finds the demucs command
+in that env by itself; --demucs points it elsewhere:
+    python3 -m experiments.separate_demucs --dataset company
     python3 -m experiments.separate_demucs --demucs /path/to/envs/audio/bin/demucs --dataset company
 
 Default device is "mps" (Apple GPU); use --device cpu if mps errors out.
@@ -49,7 +48,7 @@ def find_demucs() -> str:
 
 def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--demucs", help="demucs command; default: the demucs in the 'audio' conda env, else ~/venvs/demucs")
+    ap.add_argument("--demucs", help="demucs command; default: the demucs in the 'audio' conda env")
     ap.add_argument("--model", default="htdemucs")
     ap.add_argument("--device", default="mps")
     ap.add_argument("--dataset", default="jamendo", help="folder under data/: jamendo, jamendopp or company")

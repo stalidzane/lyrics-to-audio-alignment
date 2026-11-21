@@ -3,8 +3,9 @@ Forced alignment with the MMS aligner (wav2vec2 + CTC + Viterbi), system 2.
 
 Uses the ctc-forced-aligner package by MahmoudAshraf97 and its default model
 MahmoudAshraf/mms-300m-1130-forced-aligner (MMS, 1,130 languages; CC-BY-NC 4.0).
-Install in the `mms` conda env (NOT the PyPI package of the same name):
-    conda activate mms
+Installed in the `audio` conda env (envs/audio.yml), from GitHub, NOT the PyPI package of the
+same name:
+    conda activate audio
     pip uninstall -y ctc-forced-aligner
     pip install git+https://github.com/MahmoudAshraf97/ctc-forced-aligner.git
 
@@ -16,7 +17,7 @@ Writes predictions/<dataset>/mms-<input>/<name>.json:
      "words": [{text, start, end, score}]}
 score.py uses "onsets" (one per reference word).
 
-Run from the repo root inside the mms env:
+Run from the repo root inside the audio env:
     python3 -m experiments.run_mms --dataset company --songs xIImn_1oJ R1LGghIk4O kw2gggCCBe
     python3 -m experiments.run_mms --dataset jamendo --limit 2
     python3 -m experiments.run_mms --dataset jamendo --input vocals
